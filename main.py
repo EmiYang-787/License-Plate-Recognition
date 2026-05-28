@@ -4,7 +4,7 @@
 import sys
 import os
 
-# 禁用 oneDNN 警告（可选）
+# 禁用 oneDNN 警告
 os.environ['FLAGS_use_mkldnn'] = '0'
 
 from PyQt5.QtWidgets import QApplication
