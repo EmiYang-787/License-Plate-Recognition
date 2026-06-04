@@ -338,7 +338,7 @@ class MainWindow(QMainWindow):
         manual_inner.setSpacing(10)
 
         self.manual_plate_input = QLineEdit()
-        self.manual_plate_input.setPlaceholderText("输入车牌号，如：京A12345")
+        self.manual_plate_input.setPlaceholderText("点击左侧表格车牌 或 手动输入车牌号")
         self.manual_plate_input.setMinimumHeight(44)
         self.manual_plate_input.setStyleSheet(f"""
             QLineEdit {{
@@ -433,6 +433,9 @@ class MainWindow(QMainWindow):
         self.table_active.verticalHeader().setVisible(False)
         self.table_active.setAlternatingRowColors(True)
         self.table_active.setShowGrid(False)
+        self.table_active.setSelectionBehavior(QTableWidget.SelectRows)  # 选中整行
+        self.table_active.setSelectionMode(QTableWidget.SingleSelection)  # 单选
+        self.table_active.setEditTriggers(QTableWidget.NoEditTriggers)   # 禁止编辑
         table_inner.addWidget(self.table_active)
         layout.addWidget(table_card, stretch=2)
 
@@ -451,6 +454,9 @@ class MainWindow(QMainWindow):
         """)
         layout.addWidget(self.status_label)
 
+        # ====== 连接表格点击信号 ======
+        self.table_active.cellClicked.connect(self._on_table_row_clicked)
+
         return container
 
     # ==================== 公共接口（保持不变） ====================
@@ -460,17 +466,21 @@ class MainWindow(QMainWindow):
         if frame is None:
             return
 
+        # 帧已在子线程中压缩到 ~720x480，这里快速转换即可
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_frame.shape
         bytes_per_line = ch * w
 
-        qt_image = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
-        pixmap = QPixmap.fromImage(qt_image)
+        # 拷贝数据避免 numpy 内存被回收后 QImage 悬空指针
+        rgb_copy = rgb_frame.copy()
+        qt_image = QImage(rgb_copy.data, w, h, bytes_per_line, QImage.Format_RGB888)
 
+        # 帧已接近显示尺寸，用快速缩放即可
+        pixmap = QPixmap.fromImage(qt_image)
         scaled = pixmap.scaled(
             self.video_label.size(),
             Qt.KeepAspectRatio,
-            Qt.SmoothTransformation
+            Qt.FastTransformation
         )
         self.video_label.setPixmap(scaled)
 
@@ -578,6 +588,15 @@ class MainWindow(QMainWindow):
             if item and item.text() == plate:
                 self.table_active.removeRow(row)
                 break
+
+    def _on_table_row_clicked(self, row: int, _col: int):
+        """点击在场车辆表格的行 → 自动填入车牌号到手动出场输入框"""
+        plate_item = self.table_active.item(row, 0)
+        if plate_item:
+            plate = plate_item.text()
+            self.manual_plate_input.setText(plate)
+            self.manual_plate_input.setFocus()
+            self.update_status(f"\U0001f449  已选择车牌 {plate}，点击「确认出场」或按回车键完成出场")
 
     def _load_database_history(self):
         try:

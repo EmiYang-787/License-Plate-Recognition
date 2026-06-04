@@ -132,7 +132,8 @@ class MainController(QObject):
             
             # 显示结果
             self.window.update_results([result])
-            self.window.update_status(f"✅ 车牌 {plate} 手动出场成功，停车 {result.get('duration', 0):.2f} 小时")
+            duration = result.get('duration') if result.get('duration') is not None else 0
+            self.window.update_status(f"✅ 车牌 {plate} 手动出场成功，停车 {duration:.2f} 小时")
             
         except Exception as e:
             print(f"[Controller] 手动出场失败: {e}")
