@@ -1,0 +1,21 @@
+# Python 3.10.20
+
+# GUI界面
+PyQt5==5.15.11
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.18.0
+
+# 图像/视频处理
+opencv-python==4.6.0.66
+opencv-contrib-python==4.6.0.66
+
+# 目标检测
+ultralytics==8.4.48
+ultralytics-thop==2.0.19
+
+# OCR识别（PP-OCRv4）
+paddlepaddle==2.6.2
+paddleocr==2.7.3
+
+# 数值计算
+numpy==1.24.4
