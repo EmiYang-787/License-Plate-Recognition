@@ -517,6 +517,7 @@ class MainWindow(QMainWindow):
         status = data.get("status", "")
         time_str = data.get("time", "")
         duration = data.get("duration")
+        fee = data.get("fee")
 
         if status not in ("entry", "exit"):
             return
@@ -530,15 +531,14 @@ class MainWindow(QMainWindow):
             if not is_history:
                 self._add_active_vehicle(plate, time_str)
         elif status == "exit":
+            parts = f'<span style="color:#ef4444; font-weight:bold;">[{time_str}] \U0001f699 车辆出场</span> | 车牌: <span style="color:#38bdf8; font-weight:bold;">{plate}</span>'
             if duration is not None:
-                msg = (f'<div style="margin:4px 0;">'
-                       f'<span style="color:#ef4444; font-weight:bold;">[{time_str}] \U0001f699 车辆出场</span> | '
-                       f'车牌: <span style="color:#38bdf8; font-weight:bold;">{plate}</span> | '
-                       f'停车时长: <span style="color:#f59e0b; font-weight:bold;">{duration:.2f}</span> 小时{suffix}</div>')
-            else:
-                msg = (f'<div style="margin:4px 0;">'
-                       f'<span style="color:#ef4444; font-weight:bold;">[{time_str}] \U0001f699 车辆出场</span> | '
-                       f'车牌: <span style="color:#38bdf8; font-weight:bold;">{plate}</span>{suffix}</div>')
+                parts += f' | 时长: <span style="color:#f59e0b; font-weight:bold;">{duration:.2f}h</span>'
+            if fee is not None:
+                fee_color = "#34d399" if fee == 0 else "#f59e0b"
+                fee_text = "免费" if fee == 0 else f"{fee:.0f} 元"
+                parts += f' | 费用: <span style="color:{fee_color}; font-weight:bold;">{fee_text}</span>'
+            msg = f'<div style="margin:4px 0;">{parts}{suffix}</div>'
             if not is_history:
                 self._remove_active_vehicle(plate)
 
@@ -549,12 +549,14 @@ class MainWindow(QMainWindow):
         status = "exit" if record.get("status") == 1 else "entry"
         time_str = record.get("entry_time", "")
         duration = record.get("duration")
+        fee = record.get("fee")
 
         data = {
             "plate": plate,
             "status": status,
             "time": time_str,
-            "duration": duration
+            "duration": duration,
+            "fee": fee,
         }
         self._append_single_result(data, is_history=True)
 

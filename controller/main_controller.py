@@ -133,7 +133,9 @@ class MainController(QObject):
             # 显示结果
             self.window.update_results([result])
             duration = result.get('duration') if result.get('duration') is not None else 0
-            self.window.update_status(f"✅ 车牌 {plate} 手动出场成功，停车 {duration:.2f} 小时")
+            fee = result.get('fee')
+            fee_part = f"，费用：{fee:.0f}元" if fee and fee > 0 else "，免费"
+            self.window.update_status(f"✅ 车牌 {plate} 手动出场成功，停车 {duration:.2f} 小时{fee_part}")
             
         except Exception as e:
             print(f"[Controller] 手动出场失败: {e}")
