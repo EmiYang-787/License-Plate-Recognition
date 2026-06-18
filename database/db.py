@@ -45,10 +45,17 @@ def init_db():
             entry_time DATETIME NOT NULL,
             exit_time DATETIME,
             duration REAL,
+            fee REAL DEFAULT 0,
             status INTEGER DEFAULT 0 CHECK(status IN (0, 1)),
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+
+    # 兼容旧表：如果 fee 列不存在则添加
+    try:
+        cursor.execute('ALTER TABLE vehicle_record ADD COLUMN fee REAL DEFAULT 0')
+    except Exception:
+        pass  # 列已存在，忽略
     
     # 创建索引优化查询
     cursor.execute('''
