@@ -1,7 +1,0 @@
-path: .  # 相对路径，指向 datasets/ccpd 的父目录（即项目根目录）
-
-train: datasets/ccpd/images/train
-val: datasets/ccpd/images/val
-
-names:
-  0: license_plate
